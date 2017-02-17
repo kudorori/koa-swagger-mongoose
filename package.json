@@ -1,0 +1,29 @@
+{
+  "name": "koa-swagger-mongoose",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kudorori/koa-swagger-mongoose.git"
+  },
+  "keywords": [
+    "koa",
+    "swagger",
+    "mongoose"
+  ],
+  "author": "m.f su",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kudorori/koa-swagger-mongoose/issues"
+  },
+  "homepage": "https://github.com/kudorori/koa-swagger-mongoose#readme",
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "mongoose": "^4.8.3",
+    "swagger-parser": "^3.4.1"
+  }
+}
