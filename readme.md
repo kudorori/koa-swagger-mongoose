@@ -1,4 +1,4 @@
-# koa@2 swagger-mongoose
+# koa-swagger-mongoose
 
 ---
 
@@ -12,7 +12,7 @@
 ### Koa Example
 
 ```
-import models from 'swagger-mongoose'
+import models from 'koa-swagger-mongoose'
 
 app.use(models({
 	path:[string], //swagger doc 路徑
