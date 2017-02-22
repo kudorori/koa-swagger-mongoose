@@ -3,7 +3,10 @@ var swaggerParser = require('swagger-parser');
 var _ = require("lodash");
 var parser = new swaggerParser();
 var _path;
-var models = {}
+var _mongooseForPath = {};
+var _modelsForPath = {};
+var _pathCache = [];
+var init = false;
 var globalSchemaOptions = {};
 var lib = {
 	parserAPI:function(path){
@@ -13,24 +16,36 @@ var lib = {
 			}
 		})
 	},
-	initSchema:function(api){
-		var definitions = api.definitions;
-		
-		try{
-			globalSchemaOptions = api["x-mongoose"]["schema-options"];
-		}catch(e){
-			
-		}
-		
-		_.toPairs(definitions).forEach(([name,data])=>{
-			if(data["x-mongoose"]!=undefined&&data["x-mongoose"]["exclude"]==true){
-				return;
+	initSchema:function({
+		path,
+		api,
+		overwrite
+	}){
+		return new Promise((resolve)=>{
+			var definitions = api.definitions;
+			var models = {};
+			try{
+				globalSchemaOptions = api["x-mongoose"]["schema-options"];
+			}catch(e){
+				
 			}
 			
-			var schema = lib.mapProperty(data);
-// 			console.log(data.properties);
-			models[name] = mongoose.model(name,new mongoose.Schema(schema,globalSchemaOptions));
-		});
+			_.toPairs(definitions).forEach(([name,data])=>{
+				if(data["x-mongoose"]!=undefined&&data["x-mongoose"]["exclude"]==true){
+					return;
+				}
+				
+				var schemaData = lib.mapProperty(data);
+				var schema = new mongoose.Schema(schema,globalSchemaOptions);
+				if(overwrite[name]!=undefined){
+					console.log("overwrite");
+					schema = new overwrite[name](schema);
+				}
+				
+				models[name] = _mongooseForPath[path].model(name,schema);
+			});
+			resolve(models);
+		})
 	},
 	mapProperty:function(property){
 		var result = {};
@@ -88,23 +103,39 @@ var lib = {
 	}
 }
 
-
 module.exports = function({
 	path="",
 	host="",
+	overwrite={},
 	options={}
 }){
-	_path = path;
-	mongoose.connect(host);
-	lib.parserAPI(path).then((api)=>{
-		lib.initSchema(api);
-		console.log("koa-swagger-mongoose: parser swagger api success");
-	}).catch((err)=>{
-		console.log(err);
-		throw "swagger paser error";
-	})
+	if(_pathCache.indexOf(path)==-1){
+		_pathCache.push(path);
+		try{
+			_mongooseForPath[path] = mongoose.createConnection(host);
+		}catch(e){
+			
+		}
+		
+		lib.parserAPI(path).then((api)=>{
+			return lib.initSchema({
+				path:path,
+				api:api,
+				overwrite:overwrite
+			});
+			console.log("koa-swagger-mongoose: parser swagger model success");
+		}).then((models)=>{
+			_modelsForPath[path]=models;
+		}).catch((err)=>{
+			console.log(err);
+			throw "swagger paser error";
+		});
+	}
+	
+	
 	return (ctx,next)=>{
-		ctx.models=models;
+		console.log(path);
+		ctx.models=_modelsForPath[path];
 		return next();
 	}
 };
