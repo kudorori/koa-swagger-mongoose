@@ -12,7 +12,9 @@
 ### Koa Example
 
 ```
-app.use(router({
+import models from 'swagger-mongoose'
+
+app.use(models({
 	path:[string], //swagger doc 路徑
 	host:[string], //mongo connect host
 	overwrite:[object] //重寫類別物件
