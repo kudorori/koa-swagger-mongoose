@@ -23,7 +23,7 @@
   "homepage": "https://github.com/kudorori/koa-swagger-mongoose#readme",
   "dependencies": {
     "lodash": "^4.17.4",
-    "mongoose": "^4.8.3",
+    "mongoose": "4.8.0",
     "swagger-parser": "^3.4.1"
   }
 }

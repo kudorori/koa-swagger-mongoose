@@ -8,6 +8,9 @@ var _modelsForPath = {};
 var _pathCache = [];
 var init = false;
 var globalSchemaOptions = {};
+
+mongoose.Promise = global.Promise;
+
 var lib = {
 	parserAPI:function(path){
 		return parser.validate(path,{
@@ -21,7 +24,7 @@ var lib = {
 		api,
 		overwrite
 	}){
-		return new Promise((resolve)=>{
+		return new Promise((resolve,reject)=>{
 			var definitions = api.definitions;
 			var models = {};
 			try{
@@ -36,12 +39,11 @@ var lib = {
 				}
 				
 				var schemaData = lib.mapProperty(data);
-				var schema = new mongoose.Schema(schema,globalSchemaOptions);
+				var schema = new mongoose.Schema(schemaData,globalSchemaOptions);
 				if(overwrite[name]!=undefined){
-					console.log("overwrite");
+					console.log("overwrite",name);
 					schema = new overwrite[name](schema);
 				}
-				
 				models[name] = _mongooseForPath[path].model(name,schema);
 			});
 			resolve(models);
@@ -123,8 +125,9 @@ module.exports = function({
 				api:api,
 				overwrite:overwrite
 			});
-			console.log("koa-swagger-mongoose: parser swagger model success");
+			
 		}).then((models)=>{
+			console.log("koa-swagger-mongoose: parser swagger model success");
 			_modelsForPath[path]=models;
 		}).catch((err)=>{
 			console.log(err);
@@ -134,7 +137,6 @@ module.exports = function({
 	
 	
 	return (ctx,next)=>{
-		console.log(path);
 		ctx.models=_modelsForPath[path];
 		return next();
 	}
