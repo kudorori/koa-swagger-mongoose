@@ -14,9 +14,7 @@ mongoose.Promise = global.Promise;
 var lib = {
 	parserAPI:function(path){
 		return parser.validate(path,{
-			$refs: {
-			    internal: false   // Don't dereference internal $refs, only external
-			}
+			
 		})
 	},
 	initSchema:function({
