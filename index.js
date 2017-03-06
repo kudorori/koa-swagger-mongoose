@@ -8,6 +8,29 @@ var _modelsForPath = {};
 var _pathCache = [];
 var init = false;
 var globalSchemaOptions = {};
+var _format = {
+	"integer":{
+		"int32": Number,
+		"int64": Number,
+		"_default": Number
+	},
+	"number":{
+		"float": Number,
+		"double": Number,
+		"_default": Number
+	},
+	"string":{
+		"byte": String,
+		"binary": String,
+		"date": Date,
+		"date-time": Date,
+		"password": String,
+		"_default": String
+	},
+	"boolean":{
+		"_default": Boolean
+	}
+}
 
 mongoose.Promise = global.Promise;
 
@@ -83,23 +106,28 @@ var lib = {
 			return new mongoose.Schema(schema,globalSchemaOptions);
 		}
 		switch(property.type){
-			case "number":
-				property.type= Number;
-			break;
-			case "string":
-				property.type= String
-			break;
-			case "object":
-				return lib.mapProperty(property);
-			break;
-			case "boolean":
-				property.type= Boolean
+			case "number": 
+			case "string": 
+			case "boolean": {
+				property.type = lib.converFormat(property.type,property.format);
 				break;
-			case "array":
+			}
+			case "object": {
+				return lib.mapProperty(property);
+				break;
+			}	
+			case "array": {
 				return [lib.mapProperty(property.items)]
-			break;
+				break;
+			}
 		}
 		return property;
+	},
+	converFormat:function(type,format){
+		if(format!=undefined&&_format[type][format]!=undefined){
+			return _format[type][format];
+		}
+		return _format[type]._default;
 	}
 }
 
