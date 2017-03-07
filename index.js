@@ -70,7 +70,7 @@ var lib = {
 			resolve(models);
 		})
 	},
-	mapProperty:function(property){
+	mapProperty:function(property, index = true, unique = true){
 		var result = {};
 		var required = [];
 		var unique = [];
@@ -80,20 +80,21 @@ var lib = {
 		}
 		
 		if(property["x-mongoose"]!=undefined&&property["x-mongoose"]["schema-options"]!=undefined){
-			if(property["x-mongoose"]["schema-options"]["unique"]!=undefined){
+			if(property["x-mongoose"]["schema-options"]["unique"]!=undefined && unique){
 				unique=property["x-mongoose"]["schema-options"]["unique"];
 			}
-			if(property["x-mongoose"]["schema-options"]["index"]!=undefined){
-				unique=property["x-mongoose"]["schema-options"]["index"];
+			if(property["x-mongoose"]["schema-options"]["index"]!=undefined && index){
+				index=property["x-mongoose"]["schema-options"]["index"];
 			}
 		}
 		_.toPairs(property.properties).forEach(([propertyName,value])=>{
 			result[propertyName]=lib.converType(value);
 			result[propertyName].required = (required.indexOf(propertyName)!=-1);
 			if(unique.indexOf(propertyName)!=-1){
-				result[propertyName].index = {unique:true,index:true};
-			}else if(index.indexOf(propertyName)!=-1){
-				result[propertyName].index = {unique:false,index:true};
+				result[propertyName].unique = true;
+			}
+			if(index.indexOf(propertyName)!=-1){
+				result[propertyName].index = true;
 			}
 			
 		});
@@ -113,11 +114,11 @@ var lib = {
 				break;
 			}
 			case "object": {
-				return lib.mapProperty(property);
+				return lib.mapProperty(property,true,false);
 				break;
 			}	
 			case "array": {
-				return [lib.mapProperty(property.items)]
+				return [lib.mapProperty(property.items,true,false)]
 				break;
 			}
 		}
