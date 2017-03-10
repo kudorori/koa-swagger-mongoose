@@ -1,4 +1,5 @@
 var mongoose = require("mongoose");
+var Schema = mongoose.Schema;
 var swaggerParser = require('swagger-parser');
 var _ = require("lodash");
 var parser = new swaggerParser();
@@ -70,23 +71,29 @@ var lib = {
 			resolve(models);
 		})
 	},
-	mapProperty:function(property, index = true, unique = true){
+	mapProperty:function(property, _index = true, _unique = true){
 		var result = {};
 		var required = [];
 		var unique = [];
 		var index = [];
+		
+		if(property.properties==undefined){
+			return Schema.Types.Mixed;
+		}
+		
 		if(property["required"]!=undefined){
 			required = property["required"];
 		}
 		
 		if(property["x-mongoose"]!=undefined&&property["x-mongoose"]["schema-options"]!=undefined){
-			if(property["x-mongoose"]["schema-options"]["unique"]!=undefined && unique){
+			if(property["x-mongoose"]["schema-options"]["unique"]!=undefined && _unique){
 				unique=property["x-mongoose"]["schema-options"]["unique"];
 			}
-			if(property["x-mongoose"]["schema-options"]["index"]!=undefined && index){
+			if(property["x-mongoose"]["schema-options"]["index"]!=undefined && _index){
 				index=property["x-mongoose"]["schema-options"]["index"];
 			}
 		}
+// 		console.log(unique,index);
 		_.toPairs(property.properties).forEach(([propertyName,value])=>{
 			result[propertyName]=lib.converType(value);
 			result[propertyName].required = (required.indexOf(propertyName)!=-1);
