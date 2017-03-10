@@ -1,4 +1,5 @@
 var mongoose = require("mongoose");
+var Schema = mongoose.Schema;
 var swaggerParser = require('swagger-parser');
 var _ = require("lodash");
 var parser = new swaggerParser();
@@ -37,7 +38,9 @@ mongoose.Promise = global.Promise;
 var lib = {
 	parserAPI:function(path){
 		return parser.validate(path,{
-			
+			$refs: {
+		    internal: false   // Don't dereference internal $refs, only external
+		  }
 		})
 	},
 	initSchema:function({
@@ -58,7 +61,7 @@ var lib = {
 				if(data["x-mongoose"]!=undefined&&data["x-mongoose"]["exclude"]==true){
 					return;
 				}
-				
+				console.log(lib.mapProperty(data));
 				var schemaData = lib.mapProperty(data);
 				var schema = new mongoose.Schema(schemaData,globalSchemaOptions);
 				if(overwrite[name]!=undefined){
@@ -71,10 +74,17 @@ var lib = {
 		})
 	},
 	mapProperty:function(property, index = true, unique = true){
+  	
 		var result = {};
 		var required = [];
 		var unique = [];
 		var index = [];
+		
+		if(property.$ref!=undefined){
+  		let refName = property.$ref.split("/").pop();
+			return {type: Schema.Types.ObjectId, ref: refName};
+		}
+		
 		if(property["required"]!=undefined){
 			required = property["required"];
 		}
@@ -89,7 +99,9 @@ var lib = {
 		}
 		_.toPairs(property.properties).forEach(([propertyName,value])=>{
 			result[propertyName]=lib.converType(value);
-			result[propertyName].required = (required.indexOf(propertyName)!=-1);
+			if(required.indexOf(propertyName)!=-1){
+  			result[propertyName].required = true;
+			}
 			if(unique.indexOf(propertyName)!=-1){
 				result[propertyName].unique = true;
 			}
@@ -102,10 +114,12 @@ var lib = {
 	},
 	converType:function(property){
 		var result = {};
+		
 		if(property.$ref!=undefined){
-			var schema = lib.mapProperty(parser.$refs.get(_path+property.$ref));
-			return new mongoose.Schema(schema,globalSchemaOptions);
+  		let refName = property.$ref.split("/").pop();
+			return {type: Schema.Types.ObjectId, ref: refName};
 		}
+		
 		switch(property.type){
 			case "number": 
 			case "string": 
@@ -118,7 +132,7 @@ var lib = {
 				break;
 			}	
 			case "array": {
-				return [lib.mapProperty(property.items,true,false)]
+				return [lib.mapProperty(property.items,true,false)];
 				break;
 			}
 		}
