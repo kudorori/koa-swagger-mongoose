@@ -80,13 +80,15 @@ var lib = {
 		var unique = [];
 		var index = [];
 		
-		if(property.properties==undefined){	
-			return Schema.Types.Mixed;
-		}
 		if(property.$ref!=undefined){
   		let refName = property.$ref.split("/").pop();
 			return {type: Schema.Types.ObjectId, ref: refName};
 		}
+		
+		if(property.properties==undefined){	
+			return Schema.Types.Mixed;
+		}
+		
 		
 		if(property["required"]!=undefined){
 			required = property["required"];
