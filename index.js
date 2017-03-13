@@ -39,7 +39,7 @@ var lib = {
 	parserAPI:function(path){
 		return parser.validate(path,{
 			$refs: {
-		    internal: false   // Don't dereference internal $refs, only external
+		    internal: true   // Don't dereference internal $refs, only external
 		  }
 		})
 	},
@@ -61,7 +61,7 @@ var lib = {
 				if(data["x-mongoose"]!=undefined&&data["x-mongoose"]["exclude"]==true){
 					return;
 				}
-				console.log(lib.mapProperty(data));
+// 				console.log(lib.mapProperty(data));
 				var schemaData = lib.mapProperty(data);
 				var schema = new mongoose.Schema(schemaData,globalSchemaOptions);
 				if(overwrite[name]!=undefined){
