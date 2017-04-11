@@ -57,15 +57,14 @@ var lib = {
 				
 			}
 			
-			_.toPairs(definitions).forEach(([name,data])=>{
+			_.toPairs(JSON.parse(JSON.stringify(definitions))).forEach(([name,data])=>{
 				if(data["x-mongoose"]!=undefined&&data["x-mongoose"]["exclude"]==true){
 					return;
 				}
-// 				console.log(lib.mapProperty(data));
 				var schemaData = lib.mapProperty(data);
+				
 				var schema = new mongoose.Schema(schemaData,globalSchemaOptions);
 				if(overwrite[name]!=undefined){
-					console.log("overwrite",name);
 					schema = new overwrite[name](schema);
 				}
 				models[name] = _mongooseForPath[path].model(name,schema);
@@ -75,10 +74,10 @@ var lib = {
 	},
 	mapProperty:function(property, _index = true, _unique = true){
   	
-		var result = {};
-		var required = [];
-		var unique = [];
-		var index = [];
+		let result = {};
+		let required = [];
+		let unique = [];
+		let index = [];
 		
 		if(property.$ref!=undefined){
   		let refName = property.$ref.split("/").pop();
@@ -94,7 +93,7 @@ var lib = {
 			required = property["required"];
 		}
 		
-		if(property["x-mongoose"]!=undefined&&property["x-mongoose"]["schema-options"]!=undefined){
+		if(property["x-mongoose"]!=undefined && property["x-mongoose"]["schema-options"]!=undefined){
 			if(property["x-mongoose"]["schema-options"]["unique"]!=undefined && _unique){
 				unique=property["x-mongoose"]["schema-options"]["unique"];
 			}
@@ -102,19 +101,20 @@ var lib = {
 				index=property["x-mongoose"]["schema-options"]["index"];
 			}
 		}
-// 		console.log(unique,index);
+		
+
 		_.toPairs(property.properties).forEach(([propertyName,value])=>{
 			result[propertyName]=lib.converType(value);
 			if(required.indexOf(propertyName)!=-1){
   			result[propertyName].required = true;
 			}
-			if(unique.indexOf(propertyName)!=-1){
+			
+			if(unique.indexOf(propertyName)!=-1 && _unique){
 				result[propertyName].unique = true;
 			}
-			if(index.indexOf(propertyName)!=-1){
+			if(index.indexOf(propertyName)!=-1 && _index){
 				result[propertyName].index = true;
 			}
-			
 		});
 		return result;
 	},
@@ -134,11 +134,11 @@ var lib = {
 				break;
 			}
 			case "object": {
-				return lib.mapProperty(property,true,false);
+				return lib.mapProperty(Object.assign({},property), false, false);
 				break;
 			}	
 			case "array": {
-				return [lib.mapProperty(property.items,true,false)];
+				return [lib.mapProperty(property.items, false, false)];
 				break;
 			}
 		}
