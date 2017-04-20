@@ -36,10 +36,10 @@ var _format = {
 mongoose.Promise = global.Promise;
 
 var lib = {
-	parserAPI:function(path){
+	parserAPI:function(path, populate){
 		return parser.validate(path,{
 			$refs: {
-		    internal: true   // Don't dereference internal $refs, only external
+		    internal: populate   // Don't dereference internal $refs, only external
 		  }
 		})
 	},
@@ -156,7 +156,8 @@ module.exports = function({
 	path="",
 	host="",
 	overwrite={},
-	options={}
+	options={},
+	populate = true
 }){
 	if(_pathCache.indexOf(path)==-1){
 		_pathCache.push(path);
@@ -166,7 +167,7 @@ module.exports = function({
 			
 		}
 		
-		lib.parserAPI(path).then((api)=>{
+		lib.parserAPI(path, populate).then((api)=>{
 			return lib.initSchema({
 				path:path,
 				api:api,
