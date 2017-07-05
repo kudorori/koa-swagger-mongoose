@@ -1,5 +1,7 @@
 # koa-swagger-mongoose
 
+> Ramda & ES6 Style
+
 ---
 
 ## Exmaple
@@ -42,7 +44,7 @@ export default class {
 		schema.methods.addUser = this.addUser;
 		//OR
 		schema.methods.deleteUser = (id)=>{
-			
+
 		};
 		return schema;
 	}
